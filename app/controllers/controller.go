@@ -23,10 +23,9 @@ func (ctr *Controller) StartSending(messages []models.Message) {
 		return
 	}
 
-	buf := &bytes.Buffer{}
-
 	for _, message := range messages {
-		fmt.Println("MESSAGE : ", message)
+		buf := &bytes.Buffer{}
+
 		tpl.Execute(buf, message)
 
 		bodyReader := bytes.NewReader(buf.Bytes())

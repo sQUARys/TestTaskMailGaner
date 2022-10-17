@@ -73,11 +73,11 @@ func (repo *Repository) AddMessage(mail models.Mail) error {
 	return nil
 }
 
-func (repo *Repository) GetMails() {
+func (repo *Repository) GetMails() ([]models.Mail, error) {
 	rowsRs, err := repo.DbStruct.Query(dbGetAllUsers)
 
 	if err != nil {
-		return
+		return []models.Mail{}, err
 	}
 	defer rowsRs.Close()
 
@@ -87,14 +87,14 @@ func (repo *Repository) GetMails() {
 		mail := models.Mail{}
 		err = rowsRs.Scan(&mail.From, &mail.To, &mail.MessageId, &mail.Message, &mail.IsRead)
 		if err != nil {
-			log.Println(err)
-			return
+			return []models.Mail{}, err
 		}
 		mails = append(mails, mail)
 	}
 
-	fmt.Println("MAILS : ", mails)
 	if err = rowsRs.Err(); err != nil {
-		return
+		return []models.Mail{}, err
 	}
+
+	return mails, err
 }

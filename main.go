@@ -3,16 +3,21 @@ package main
 import (
 	"github.com/sQUARys/TestTaskMailGaner/app/controllers"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailControllers"
+	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRouters"
+	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailServices"
 	"github.com/sQUARys/TestTaskMailGaner/models"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 )
 
 func main() {
-	mailController := mailControllers.New()
+	mailRepo := mailRepositories.New()
+	mailService := mailServices.New(mailRepo)
+
+	mailController := mailControllers.New(mailService)
+
 	mailRouter := mailRouters.New(mailController)
 
 	mailRouter.SetRoutes()
@@ -23,8 +28,6 @@ func main() {
 		Addr:         ":8081",
 		Handler:      mailRouter.Router,
 	}
-
-	var wg *sync.WaitGroup
 
 	controller := controllers.New()
 
@@ -37,6 +40,5 @@ func main() {
 		log.Println("Error in main : ", err)
 		return
 	}
-	wg.Wait()
 
 }
