@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
-	"github.com/sQUARys/TestTaskMailGaner/app/models"
+	"github.com/sQUARys/TestTaskMailGaner/models"
 	"html/template"
 	"net/http"
 	"os"

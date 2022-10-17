@@ -2,7 +2,8 @@ package mailControllers
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
+	"github.com/sQUARys/TestTaskMailGaner/models"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,11 +30,20 @@ func New() *MailController {
 }
 
 func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
+	mailRepository := mailRepositories.New()
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
 	}
-	fmt.Println("Mail routers get : ", string(body))
+	//fmt.Println("Mail routers get : ", string(body))
+
+	mailRepository.AddMessage(models.Mail{
+		From:    "from",
+		To:      "to",
+		IsRead:  false,
+		Message: string(body),
+	})
 
 	w.WriteHeader(200)
 	w.Write(body)
@@ -63,6 +73,11 @@ func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 	//}
 	//SendOkMessage(w, "transfer")
 
+}
+
+func (ctr *MailController) GetMails(w http.ResponseWriter, r *http.Request) {
+	mailRepository := mailRepositories.New()
+	mailRepository.GetMails()
 }
 
 func ErrorHandler(w http.ResponseWriter, err error, statusCode int) {

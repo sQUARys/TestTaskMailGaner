@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/sQUARys/TestTaskMailGaner/app/controllers"
-	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailControllers"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRouters"
+	"github.com/sQUARys/TestTaskMailGaner/models"
 	"log"
 	"net/http"
 	"sync"

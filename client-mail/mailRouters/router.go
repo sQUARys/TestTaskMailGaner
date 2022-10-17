@@ -22,4 +22,6 @@ func New(controller *mailControllers.MailController) *Router {
 func (r *Router) SetRoutes() {
 	log.Println("Mail routes start listening.")
 	r.Router.HandleFunc("/mail/", r.Controller.MailHandler).Methods("Post")
+	r.Router.HandleFunc("/mail/users", r.Controller.GetMails).Methods("Get")
+
 }
