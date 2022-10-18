@@ -11,8 +11,9 @@ type Service struct {
 }
 
 type usersRepository interface {
-	AddMessage(mail models.Mail) error
+	AddMail(mail models.Mail) error
 	GetMails() ([]models.Mail, error)
+	GetMailById(id int) (models.Mail, error)
 }
 
 func New(repository usersRepository) *Service {
@@ -25,4 +26,9 @@ func New(repository usersRepository) *Service {
 func (service *Service) GetMails() ([]models.Mail, error) {
 	mails, err := service.Repo.GetMails()
 	return mails, err
+}
+
+func (service *Service) GetMailById(id int) (models.Mail, error) {
+	mail, err := service.Repo.GetMailById(id)
+	return mail, err
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
 	"github.com/sQUARys/TestTaskMailGaner/models"
 	"html"
@@ -11,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 )
 
@@ -32,6 +34,7 @@ type MailController struct {
 
 type mailService interface {
 	GetMails() ([]models.Mail, error)
+	GetMailById(id int) (models.Mail, error)
 }
 
 func New(service mailService) *MailController {
@@ -49,9 +52,8 @@ func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
 	}
-	//fmt.Println("Mail routers get : ", string(body))
 
-	mailRepository.AddMessage(models.Mail{
+	mailRepository.AddMail(models.Mail{
 		From:    "from",
 		To:      "to",
 		IsRead:  false,
@@ -63,6 +65,30 @@ func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (ctr *MailController) GetMailById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	vars := mux.Vars(r)
+	idString := vars["message-id"]
+
+	idInt, err := strconv.Atoi(idString)
+	if err != nil {
+		ErrorHandler(w, err, serverInternal)
+		return
+	}
+
+	mail, err := ctr.Service.GetMailById(idInt)
+	if err != nil {
+		fmt.Println(err)
+		ErrorHandler(w, err, serverInternal)
+		return
+	}
+
+	//fmt.Fprintln(w, mail)
+	fmt.Println(mail.IsRead)
+
+}
+
 func (ctr *MailController) GetMails(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
@@ -71,6 +97,7 @@ func (ctr *MailController) GetMails(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
 	}
+
 	for _, mailHTML := range mails {
 		tpl, err := template.New("card.html").ParseFiles("app/templates/card.html")
 		if err != nil {
@@ -79,7 +106,7 @@ func (ctr *MailController) GetMails(w http.ResponseWriter, r *http.Request) {
 
 		buf := &bytes.Buffer{}
 		tpl.Execute(buf, mailHTML)
-		fmt.Println(html.UnescapeString(buf.String()))
+
 		fmt.Fprintln(w, html.UnescapeString(buf.String()))
 	}
 }

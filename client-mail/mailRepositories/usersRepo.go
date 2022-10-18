@@ -19,11 +19,12 @@ const (
 
 	connectionStringFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
 
-	dbCreateMail        = `INSERT INTO mail_table("from" , "to", "message", "isread") VALUES ($1, $2 , $3 , $4) RETURNING "message_id";` //`INSERT INTO mail_table(from , to, message, isread) VALUES (%s , %s , %s , %t)` //RETURNING message_id
-	dbGetAllUsers       = "SELECT * FROM mail_table"
-	dbCreateUserRequest = `INSERT INTO "user_table"( "id") VALUES (%d)`
-	dbUsersByIdRequest  = "SELECT * FROM user_table WHERE id = $1"
-	dbUpdateJSON        = "UPDATE user_table SET balance=%2f WHERE id=%d"
+	dbCreateMail = `INSERT INTO mail_table("from" , "to", "message", "isread") VALUES ($1, $2 , $3 , $4) RETURNING "message_id";`
+
+	dbGetAllUsers = "SELECT * FROM mail_table ORDER BY message_id"
+	dbGetUserById = "SELECT * FROM mail_table WHERE message_id = $1"
+
+	dbUpdateStatusRead = "UPDATE mail_table SET isread=$1 WHERE message_id = $2"
 )
 
 type Repository struct {
@@ -50,17 +51,9 @@ func New() *Repository {
 	return &repo
 }
 
-func (repo *Repository) AddMessage(mail models.Mail) error {
+func (repo *Repository) AddMail(mail models.Mail) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	//если понадобится id сообщения
-	//message_id := -1
-	//
-	//err := repo.DbStruct.QueryRow(dbCreateMail, mail.From, mail.To, mail.Message, mail.IsRead).Scan(&message_id)
-	//if err != nil {
-	//	panic(err)
-	//}
 
 	_, err := repo.DbStruct.ExecContext(
 		ctx,
@@ -71,6 +64,34 @@ func (repo *Repository) AddMessage(mail models.Mail) error {
 		return err
 	}
 	return nil
+}
+
+func (repo *Repository) GetMailById(id int) (models.Mail, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	tx, err := repo.DbStruct.BeginTx(ctx, nil)
+	if err != nil {
+		return models.Mail{}, err
+	}
+
+	defer tx.Rollback()
+
+	var mail models.Mail
+	if err = tx.QueryRowContext(ctx, dbGetUserById, id).Scan(&mail.To, &mail.From, &mail.MessageId, &mail.Message, &mail.IsRead); err != nil {
+		return models.Mail{}, err
+	}
+
+	_, err = tx.ExecContext(ctx, dbUpdateStatusRead, true, mail.MessageId)
+	if err != nil {
+		return models.Mail{}, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return models.Mail{}, err
+	}
+
+	return mail, nil
 }
 
 func (repo *Repository) GetMails() ([]models.Mail, error) {
