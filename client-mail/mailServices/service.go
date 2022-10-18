@@ -15,6 +15,7 @@ type usersRepository interface {
 	AddMail(mail models.Mail) error
 	GetMails() ([]models.Mail, error)
 	GetMailById(id int) (models.Mail, error)
+	GetMailsByEmail(email string) ([]models.Mail, error)
 }
 
 type emailsCache interface {
@@ -44,4 +45,9 @@ func (service *Service) AddMail(mail models.Mail) error {
 func (service *Service) GetMailById(id int) (models.Mail, error) {
 	mail, err := service.Repo.GetMailById(id)
 	return mail, err
+}
+
+func (service *Service) GetMailsByEmail(email string) ([]models.Mail, error) {
+	mails, err := service.Repo.GetMailsByEmail(email)
+	return mails, err
 }

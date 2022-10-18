@@ -3,6 +3,7 @@
       <h3>{{.MessageId}}</h3>
       {{.Message}}
       Readed : {{.IsRead}}
-      <a href=http://localhost:8081/mail/message/{{.MessageId}}>Go to message</a>
+      <a href=http://localhost:8081/mail/message/{{.MessageId}}>Go to description of message</a>
+      <a href=http://localhost:8081/mail/got-emails/{{.To}}>Go to all messages of current message's recipient</a>
   </div>
 </body>

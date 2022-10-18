@@ -35,6 +35,7 @@ type mailService interface {
 	AddMail(mail models.Mail) error
 	GetMails() ([]models.Mail, error)
 	GetMailById(id int) (models.Mail, error)
+	GetMailsByEmail(email string) ([]models.Mail, error)
 }
 
 func New(service mailService) *MailController {
@@ -67,24 +68,28 @@ func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 	//w.Write(body)
 }
 
-//func (ctr *MailController) GetMailsByEmail(w http.ResponseWriter, r *http.Request) {
-//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-//
-//	vars := mux.Vars(r)
-//	email := vars["email"]
-//
-//	mail, err := ctr.Service.GetMailByEmail(email)
-//	if err != nil {
-//		ErrorHandler(w, err, serverInternal)
-//		return
-//	}
-//
-//	err = WriteHTML(w, mail, "description.html", "app/templates/description.html")
-//	if err != nil {
-//		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
-//	}
-//
-//}
+func (ctr *MailController) GetMailsByEmail(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	vars := mux.Vars(r)
+	email := vars["email"]
+
+	mails, err := ctr.Service.GetMailsByEmail(email)
+
+	if err != nil {
+		ErrorHandler(w, err, serverInternal)
+		return
+	}
+
+	w.WriteHeader(ok)
+	for _, mailHTML := range mails {
+		err = WriteHTML(w, mailHTML, "card.html", "app/templates/card.html")
+		if err != nil {
+			log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+		}
+	}
+
+}
 
 func (ctr *MailController) GetMailById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

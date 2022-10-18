@@ -21,8 +21,9 @@ const (
 
 	dbCreateMail = `INSERT INTO mail_table("recipient","message", "isread") VALUES ($1, $2 , $3) RETURNING "message_id";`
 
-	dbGetAllUsers = "SELECT * FROM mail_table ORDER BY message_id"
-	dbGetUserById = "SELECT * FROM mail_table WHERE message_id = $1"
+	dbGetAllUsers    = "SELECT * FROM mail_table ORDER BY message_id"
+	dbGetUserById    = "SELECT * FROM mail_table WHERE message_id = $1"
+	dbGetMailByEmail = "SELECT * FROM mail_table WHERE recipient = $1"
 
 	dbUpdateStatusRead = "UPDATE mail_table SET isread=$1 WHERE message_id = $2"
 )
@@ -93,6 +94,38 @@ func (repo *Repository) GetMailById(id int) (mail models.Mail, err error) {
 	}
 
 	return
+}
+
+func (repo *Repository) GetMailsByEmail(email string) ([]models.Mail, error) {
+	rowsRs, err := repo.DbStruct.Query(dbGetMailByEmail, email)
+
+	if err != nil {
+		return []models.Mail{}, err
+	}
+
+	defer func() {
+		err = rowsRs.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	var mails []models.Mail
+
+	for rowsRs.Next() {
+		mail := models.Mail{}
+		err = rowsRs.Scan(&mail.To, &mail.MessageId, &mail.Message, &mail.IsRead)
+		if err != nil {
+			return []models.Mail{}, err
+		}
+		mails = append(mails, mail)
+	}
+
+	if err = rowsRs.Err(); err != nil {
+		return []models.Mail{}, err
+	}
+
+	return mails, err
 }
 
 func (repo *Repository) GetMails() ([]models.Mail, error) {

@@ -14,9 +14,9 @@ import (
 
 func main() {
 	emailCache := mailCache.New()
-	emailCache.AddUserEmail("email1@mail.ru")
-	emailCache.AddUserEmail("email2@mail.ru")
-	emailCache.AddUserEmail("email3@mail.ru")
+	emailCache.AddUserEmail("first@mail.ru")
+	emailCache.AddUserEmail("second@mail.ru")
+	emailCache.AddUserEmail("third@mail.ru")
 
 	mailRepo := mailRepositories.New()
 
