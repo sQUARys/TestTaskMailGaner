@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/gocelery/gocelery"
 	"github.com/gomodule/redigo/redis"
+	"time"
 )
 
 // exampleAddTask is integer addition task
@@ -70,7 +69,7 @@ func main() {
 	)
 
 	// register task
-	cli.Register("worker.add_reflect", &exampleAddTask{})
+	cli.Register("worker", &exampleAddTask{})
 
 	// start workers (non-blocking call)
 	cli.StartWorker()
@@ -81,3 +80,59 @@ func main() {
 	// stop workers gracefully (blocking call)
 	cli.StopWorker()
 }
+
+//func main() {
+//	app := celery.NewApp()
+//
+//	err := app.Delay(
+//		"celery",
+//		"mainQueue",
+//		"a",
+//		3,
+//	)
+//	if err != nil {
+//		log.Printf("failed to send mytask: %v", err)
+//	}
+//}
+
+//
+//// create redis connection pool
+//redisPool := &redis.Pool{
+//Dial: func() (redis.Conn, error) {
+//c, err := redis.DialURL("redis://")
+//if err != nil {
+//return nil, err
+//}
+//return c, err
+//},
+//}
+//
+//// initialize celery client
+//cli, _ := gocelery.NewCeleryClient(
+//gocelery.NewRedisBroker(redisPool),
+//&gocelery.RedisCeleryBackend{Pool: redisPool},
+//1,
+//)
+//
+//// task
+//add := func(a, b int) int {
+//	return a + b
+//}
+//
+//// register task
+//cli.Register("worker", add)
+//
+//// context with cancelFunc to handle exit gracefully
+//ctx, cancel := context.WithCancel(context.Background())
+//
+//// start workers (non-blocking call)
+//cli.StartWorkerWithContext(ctx)
+//
+//// wait for client request
+//time.Sleep(10 * time.Second)
+//
+//// stop workers by cancelling context
+//cancel()
+//
+//// optional: wait for all workers to terminate
+//cli.WaitForStopWorker()

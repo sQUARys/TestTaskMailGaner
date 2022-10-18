@@ -19,7 +19,7 @@ const (
 
 	connectionStringFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
 
-	dbCreateMail = `INSERT INTO mail_table("from" , "to", "message", "isread") VALUES ($1, $2 , $3 , $4) RETURNING "message_id";`
+	dbCreateMail = `INSERT INTO mail_table("recipient","message", "isread") VALUES ($1, $2 , $3) RETURNING "message_id";`
 
 	dbGetAllUsers = "SELECT * FROM mail_table ORDER BY message_id"
 	dbGetUserById = "SELECT * FROM mail_table WHERE message_id = $1"
@@ -57,7 +57,7 @@ func (repo *Repository) AddMail(mail models.Mail) error {
 
 	_, err := repo.DbStruct.ExecContext(
 		ctx,
-		dbCreateMail, mail.From, mail.To, mail.Message, mail.IsRead,
+		dbCreateMail, mail.To, mail.Message, mail.IsRead,
 	)
 
 	if err != nil {
@@ -66,32 +66,33 @@ func (repo *Repository) AddMail(mail models.Mail) error {
 	return nil
 }
 
-func (repo *Repository) GetMailById(id int) (models.Mail, error) {
+func (repo *Repository) GetMailById(id int) (mail models.Mail, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	tx, err := repo.DbStruct.BeginTx(ctx, nil)
 	if err != nil {
-		return models.Mail{}, err
+		return
 	}
 
-	defer tx.Rollback()
+	defer func() {
+		if err != nil {
+			err = tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
-	var mail models.Mail
-	if err = tx.QueryRowContext(ctx, dbGetUserById, id).Scan(&mail.To, &mail.From, &mail.MessageId, &mail.Message, &mail.IsRead); err != nil {
-		return models.Mail{}, err
+	if err = tx.QueryRowContext(ctx, dbGetUserById, id).Scan(&mail.To, &mail.MessageId, &mail.Message, &mail.IsRead); err != nil {
+		return
 	}
 
 	_, err = tx.ExecContext(ctx, dbUpdateStatusRead, true, mail.MessageId)
 	if err != nil {
-		return models.Mail{}, err
+		return
 	}
 
-	if err = tx.Commit(); err != nil {
-		return models.Mail{}, err
-	}
-
-	return mail, nil
+	return
 }
 
 func (repo *Repository) GetMails() ([]models.Mail, error) {
@@ -100,13 +101,19 @@ func (repo *Repository) GetMails() ([]models.Mail, error) {
 	if err != nil {
 		return []models.Mail{}, err
 	}
-	defer rowsRs.Close()
+
+	defer func() {
+		err = rowsRs.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	var mails []models.Mail
 
 	for rowsRs.Next() {
 		mail := models.Mail{}
-		err = rowsRs.Scan(&mail.From, &mail.To, &mail.MessageId, &mail.Message, &mail.IsRead)
+		err = rowsRs.Scan(&mail.To, &mail.MessageId, &mail.Message, &mail.IsRead)
 		if err != nil {
 			return []models.Mail{}, err
 		}

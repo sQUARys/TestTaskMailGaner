@@ -2,19 +2,25 @@ package main
 
 import (
 	"github.com/sQUARys/TestTaskMailGaner/app/controllers"
+	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailCache"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailControllers"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRouters"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailServices"
-	"github.com/sQUARys/TestTaskMailGaner/models"
 	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
+	emailCache := mailCache.New()
+	emailCache.AddUserEmail("email1@mail.ru")
+	emailCache.AddUserEmail("email2@mail.ru")
+	emailCache.AddUserEmail("email3@mail.ru")
+
 	mailRepo := mailRepositories.New()
-	mailService := mailServices.New(mailRepo)
+
+	mailService := mailServices.New(mailRepo, emailCache)
 
 	mailController := mailControllers.New(mailService)
 
@@ -31,9 +37,7 @@ func main() {
 
 	controller := controllers.New()
 
-	data := []models.Message{{Name: "Roman", Age: 18, Message: "Hello world."}, {Name: "Oleg", Age: 21, Message: "Creaste word."}}
-
-	go controller.StartSending(data)
+	go controller.StartSending(emailCache)
 
 	err := mailServer.ListenAndServe()
 	if err != nil {

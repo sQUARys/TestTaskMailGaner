@@ -6,7 +6,8 @@ import (
 )
 
 type Service struct {
-	Repo usersRepository
+	Repo  usersRepository
+	Cache emailsCache
 	sync.RWMutex
 }
 
@@ -16,9 +17,16 @@ type usersRepository interface {
 	GetMailById(id int) (models.Mail, error)
 }
 
-func New(repository usersRepository) *Service {
+type emailsCache interface {
+	AddUserEmail(emailAddress string) error
+	GetEmail(key string) (models.EmailAddress, error)
+	GetEmails() ([]models.EmailAddress, error)
+}
+
+func New(repository usersRepository, cache emailsCache) *Service {
 	serv := Service{
-		Repo: repository,
+		Repo:  repository,
+		Cache: cache,
 	}
 	return &serv
 }
@@ -26,6 +34,11 @@ func New(repository usersRepository) *Service {
 func (service *Service) GetMails() ([]models.Mail, error) {
 	mails, err := service.Repo.GetMails()
 	return mails, err
+}
+
+func (service *Service) AddMail(mail models.Mail) error {
+	err := service.Repo.AddMail(mail)
+	return err
 }
 
 func (service *Service) GetMailById(id int) (models.Mail, error) {

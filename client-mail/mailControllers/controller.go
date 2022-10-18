@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
 	"github.com/sQUARys/TestTaskMailGaner/models"
 	"html"
 	"html/template"
@@ -33,6 +32,7 @@ type MailController struct {
 }
 
 type mailService interface {
+	AddMail(mail models.Mail) error
 	GetMails() ([]models.Mail, error)
 	GetMailById(id int) (models.Mail, error)
 }
@@ -44,29 +44,50 @@ func New(service mailService) *MailController {
 }
 
 func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	ctr.RLock()
 	defer ctr.RUnlock()
-	mailRepository := mailRepositories.New()
+
+	vars := mux.Vars(r)
+	email := vars["email"]
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
+		return
 	}
-
-	mailRepository.AddMail(models.Mail{
-		From:    "from",
-		To:      "to",
-		IsRead:  false,
+	ctr.Service.AddMail(models.Mail{
+		To:      email,
 		Message: string(body),
+		IsRead:  false,
 	})
 
-	w.WriteHeader(200)
-	w.Write(body)
-
+	//w.WriteHeader(200)
+	//w.Write(body)
 }
 
+//func (ctr *MailController) GetMailsByEmail(w http.ResponseWriter, r *http.Request) {
+//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+//
+//	vars := mux.Vars(r)
+//	email := vars["email"]
+//
+//	mail, err := ctr.Service.GetMailByEmail(email)
+//	if err != nil {
+//		ErrorHandler(w, err, serverInternal)
+//		return
+//	}
+//
+//	err = WriteHTML(w, mail, "description.html", "app/templates/description.html")
+//	if err != nil {
+//		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+//	}
+//
+//}
+
 func (ctr *MailController) GetMailById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	vars := mux.Vars(r)
 	idString := vars["message-id"]
@@ -79,13 +100,14 @@ func (ctr *MailController) GetMailById(w http.ResponseWriter, r *http.Request) {
 
 	mail, err := ctr.Service.GetMailById(idInt)
 	if err != nil {
-		fmt.Println(err)
 		ErrorHandler(w, err, serverInternal)
 		return
 	}
 
-	//fmt.Fprintln(w, mail)
-	fmt.Println(mail.IsRead)
+	err = WriteHTML(w, mail, "description.html", "app/templates/description.html")
+	if err != nil {
+		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+	}
 
 }
 
@@ -96,18 +118,15 @@ func (ctr *MailController) GetMails(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
+		return
 	}
 
+	w.WriteHeader(ok)
 	for _, mailHTML := range mails {
-		tpl, err := template.New("card.html").ParseFiles("app/templates/card.html")
+		err = WriteHTML(w, mailHTML, "card.html", "app/templates/card.html")
 		if err != nil {
-			return
+			log.Println(fmt.Sprintf("Error in  writing html. %w", err))
 		}
-
-		buf := &bytes.Buffer{}
-		tpl.Execute(buf, mailHTML)
-
-		fmt.Fprintln(w, html.UnescapeString(buf.String()))
 	}
 }
 
@@ -128,6 +147,26 @@ func ErrorHandler(w http.ResponseWriter, err error, statusCode int) {
 		log.Println(errorWriting)
 		return
 	}
+}
+
+func WriteHTML(w http.ResponseWriter, mail interface{}, name string, path string) error {
+	tpl, err := template.New(name).ParseFiles(path)
+	if err != nil {
+		return err
+	}
+
+	buf := &bytes.Buffer{}
+	err = tpl.Execute(buf, mail)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintln(w, html.UnescapeString(buf.String()))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //func SendOkMessage(w http.ResponseWriter, action string) {
