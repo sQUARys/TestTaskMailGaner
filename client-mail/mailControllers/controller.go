@@ -1,10 +1,13 @@
 package mailControllers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
 	"github.com/sQUARys/TestTaskMailGaner/models"
+	"html"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -69,9 +72,16 @@ func (ctr *MailController) GetMails(w http.ResponseWriter, r *http.Request) {
 		ErrorHandler(w, err, serverInternal)
 	}
 	for _, mailHTML := range mails {
-		fmt.Fprintln(w, mailHTML.Message)
+		tpl, err := template.New("card.html").ParseFiles("app/templates/card.html")
+		if err != nil {
+			return
+		}
+
+		buf := &bytes.Buffer{}
+		tpl.Execute(buf, mailHTML)
+		fmt.Println(html.UnescapeString(buf.String()))
+		fmt.Fprintln(w, html.UnescapeString(buf.String()))
 	}
-	//fmt.Fprint(w, mails)
 }
 
 func ErrorHandler(w http.ResponseWriter, err error, statusCode int) {

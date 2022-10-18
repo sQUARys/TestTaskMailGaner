@@ -1,10 +1,10 @@
 package models
 
 type Message struct {
-	Name    string
-	Age     int
-	Message string
-	To      string
+	Name      string
+	Age       int
+	Message   string
+	MessageId int
 }
 
 type Mail struct {
