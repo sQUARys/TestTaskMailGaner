@@ -18,17 +18,15 @@ import (
 const (
 	ok             = http.StatusOK
 	serverInternal = http.StatusInternalServerError
-	badRequest     = http.StatusBadRequest
-	notFound       = http.StatusNotFound
 )
-
-type ErrorResponse struct {
-	error string `json:"error"`
-}
 
 type MailController struct {
 	Service mailService
 	sync.RWMutex
+}
+
+type ErrorResponse struct {
+	error string `json:"error"`
 }
 
 type mailService interface {
@@ -52,22 +50,22 @@ func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	email := vars["email"]
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
 		return
 	}
 
-	fmt.Println("BODY : ", string(body))
-
-	ctr.Service.AddMail(models.Mail{
+	err = ctr.Service.AddMail(models.Mail{
 		To:      email,
 		Message: string(body),
 		IsRead:  false,
 	})
-
-	//w.WriteHeader(200)
-	//w.Write(body)
+	if err != nil {
+		ErrorHandler(w, err, serverInternal)
+		return
+	}
 }
 
 func (ctr *MailController) GetMailsByEmail(w http.ResponseWriter, r *http.Request) {
@@ -175,20 +173,3 @@ func WriteHTML(w http.ResponseWriter, mail interface{}, name string, path string
 
 	return nil
 }
-
-//func SendOkMessage(w http.ResponseWriter, action string) {
-//	message := fmt.Sprintf("Action %s done succesful.", action)
-//	responseString := users.ResponseOK{
-//		Message: message,
-//	}
-//
-//	responseJSON, err := json.Marshal(responseString)
-//	if err != nil {
-//		ErrorHandler(w, err, http.StatusInternalServerError)
-//	}
-//
-//	_, err = w.Write(responseJSON)
-//	if err != nil {
-//		ErrorHandler(w, err, http.StatusInternalServerError)
-//	}
-//}
