@@ -2,7 +2,7 @@ package models
 
 const EmailFromWhichSendAllPushes = "roman.kocenko@mail.ru"
 
-var SecondsForPushes = []int{2, 7, 10}
+var SecondsForPushes = []int{5, 10, 15}
 
 var PushNotificationText = []string{"Hello, you won a bicycle!", "Whats'up, we can help you in education!", "Maybe you want to buy new shoes?"}
 

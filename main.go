@@ -15,23 +15,21 @@ import (
 
 func main() {
 	celerySenderEmails := celerySender.New()
-	celerySenderEmails.Start()
-
 	mailRepo := mailRepositories.New()
-
 	mailService := mailServices.New(mailRepo)
-
-	err := mailService.Start()
-	if err != nil {
-		log.Println(fmt.Errorf("Error : %w .\n", err))
-	}
-	emails, _ := mailService.GetEmails()
-	fmt.Println("MAILSERVICE : ", emails)
-
 	mailController := mailControllers.New(mailService)
+	controller := senders.New()
+
+	go func() {
+		err := mailService.Start()
+		if err != nil {
+			log.Println(fmt.Errorf("Error : %w .\n", err))
+		}
+		celerySenderEmails.Start()
+		controller.StartSending(mailRepo)
+	}()
 
 	mailRouter := mailRouters.New(mailController)
-
 	mailRouter.SetRoutes()
 
 	mailServer := http.Server{
@@ -41,11 +39,7 @@ func main() {
 		Handler:      mailRouter.Router,
 	}
 
-	controller := senders.New()
-
-	go controller.StartSending(mailRepo)
-
-	err = mailServer.ListenAndServe()
+	err := mailServer.ListenAndServe()
 	if err != nil {
 		log.Println("Error in main : ", err)
 		return
