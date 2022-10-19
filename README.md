@@ -48,10 +48,29 @@ CREATE TABLE users_email_table(
 ```
 
 Теперь переходим в папку проекта и запускаем main.go файл. После его запуска, в Celery и users_email_table будут записаны
-заданные по дефолту начальные условия, чтобы из данных сервисов можно было отправлять данные на сервер.
-Данные начальные условия хранятся в [initialConditions](https://github.com/sQUARys/TestTaskMailGaner/blob/master/app/models/initialsConditions.go)
+заданные по дефолту начальные условия, чтобы из сервисов можно было отправлять данные на сервер.
+Начальные условия хранятся в [initialConditions](https://github.com/sQUARys/TestTaskMailGaner/blob/master/app/models/initialsConditions.go). Начальные условия нужны для того, чтобы уже иметь какую-либо базу email'ов и push сообщения, так как в реальном проекте база пользовательских email'ов уже будет на более низких уровнях заполнена(например, при регистрации).
 
+## Структура микросервиса
+
+    .
+    ├── app                   # все, что связано с микросервисом лежит в данной папке
+    ├── go.mod             
+    ├── main.go               # Файл для запуска всего микросервиса
+    └── README.md
+    
+### Более подробный разбор папки [app](https://github.com/sQUARys/TestTaskMailGaner/tree/master/app)
+	.
+    ├── ...
+    ├── app                    
+    │   ├── celerySender   # данная папка осуществляет отправку отложенных сообщений на сторону "клиента" с помощью Celery
+    │   ├── client-mail    # данная папка отвечает за сторону "клиентов", то есть в ней происходит прием и отображение
+    |   |                    всех полученных данных(в нашем случае html запросов на email адрес)
+    │   └── models         # в этой папке хранятся большинство структур микросервиса и "начальные условия"
+    │   └── senders        # данная папка осуществляет отправку сообщений на сторону "клиента"
+    │   └── templates      # папка с html для отрисовки и передачи между сервером и клиентом
+    └── ...
 ## Go Celery Worker in Action
 
-![demo](https://github.com/sQUARys/TestTaskMailGaner/blob/master/project.gif)
+![demo](https://github.com/sQUARys/TestTaskMailGaner/blob/master/project.webm)
 
