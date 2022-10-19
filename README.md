@@ -37,7 +37,7 @@ CREATE TABLE users_email_table(
 );
 ```
 
-Также, для работы с Celery нам необходимо его запустить. Переходим в папку [celerySender](https://github.com/sQUARys/TestTaskMailGaner/app/celerySender)
+Также, для работы с Celery нам необходимо его запустить. Переходим в папку [celerySender](https://github.com/sQUARys/TestTaskMailGaner/tree/master/app/celerySender)
 Запускаем скрипт воркера
 ```
   python3 worker.py      
@@ -49,7 +49,7 @@ CREATE TABLE users_email_table(
 
 Теперь переходим в папку проекта и запускаем main.go файл. После его запуска, в Celery и users_email_table будут записаны
 заданные по дефолту начальные условия, чтобы из данных сервисов можно было отправлять данные на сервер.
-Данные начальные условия хранятся в [initialConditions](https://github.com/sQUARys/TestTaskMailGaner/app/models/initialConditions.go)
+Данные начальные условия хранятся в [initialConditions](https://github.com/sQUARys/TestTaskMailGaner/blob/master/app/models/initialsConditions.go)
 
 
 ## Example
