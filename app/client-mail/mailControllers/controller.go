@@ -26,7 +26,7 @@ type MailController struct {
 }
 
 type ErrorResponse struct {
-	error string `json:"error"`
+	error string
 }
 
 type mailService interface {
