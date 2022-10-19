@@ -70,7 +70,6 @@ CREATE TABLE users_email_table(
     │   └── senders        # данная папка осуществляет отправку сообщений на сторону "клиента"
     │   └── templates      # папка с html для отрисовки и передачи между сервером и клиентом
     └── ...
-## Go Celery Worker in Action
-
-![demo](https://github.com/sQUARys/TestTaskMailGaner/blob/master/project.webm)
+## Демонстрация работы микросервиса
+[project.webm](https://user-images.githubusercontent.com/46746212/196814410-89478855-5daa-4d59-a822-7059b9c82cc5.webm)
 
