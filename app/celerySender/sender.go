@@ -50,18 +50,16 @@ func CreateCeleryClient() *gocelery.CeleryClient {
 }
 
 func (sender *Sender) Start() {
-	for _, email := range models.CeleryEmailsToSend {
-		for pushNumber, push := range models.PushNotificationText {
-			celeryMail := models.Mail{
-				To:      email,
-				From:    models.EmailFromWhichSendAllPushes,
-				Message: push,
-			}
+	for _, pushNotification := range models.PushesForCelery {
+		celeryMail := models.Mail{
+			To:      pushNotification.To,
+			From:    models.EmailFromWhichSendAllPushes,
+			Message: pushNotification.Push,
+		}
 
-			err := sender.SendMessageWithTime(celeryMail, models.SecondsForPushes[pushNumber])
-			if err != nil {
-				log.Println(err)
-			}
+		err := sender.SendMessageWithTime(celeryMail, pushNotification.AfterTime)
+		if err != nil {
+			log.Println(err)
 		}
 	}
 

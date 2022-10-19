@@ -27,7 +27,7 @@ func New(repository usersRepository) *Service {
 }
 
 func (service *Service) Start() error {
-	for _, email := range models.StartedMailsForBasicSending {
+	for _, email := range models.UsersEmails {
 		err := service.AddUserEmail(email)
 		if err != nil {
 			return err

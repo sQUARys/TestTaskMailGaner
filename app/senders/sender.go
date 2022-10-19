@@ -26,7 +26,7 @@ type usersRepository interface {
 
 func New() *Controller {
 	return &Controller{
-		Pushes:    models.PushNotificationText,
+		Pushes:    models.Pushes,
 		FromEmail: models.EmailFromWhichSendAllPushes,
 	}
 }
