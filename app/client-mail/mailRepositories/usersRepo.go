@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -30,6 +31,7 @@ const (
 
 type Repository struct {
 	DbStruct *sql.DB
+	*sync.RWMutex
 }
 
 func New() *Repository {
@@ -53,6 +55,9 @@ func New() *Repository {
 }
 
 func (repo *Repository) AddMail(mail models.Mail) error {
+	repo.RLock()
+	defer repo.RUnlock()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -68,6 +73,9 @@ func (repo *Repository) AddMail(mail models.Mail) error {
 }
 
 func (repo *Repository) GetMailById(id int) (mail models.Mail, err error) {
+	repo.RLock()
+	defer repo.RUnlock()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
