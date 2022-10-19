@@ -46,7 +46,7 @@ func main() {
 
 	// register task
 	cli.Register("worker.add", &exampleAddTask{})
-	cli.Register("worker.printHTML", &exampleAddTask{})
+	cli.Register("worker.send_mail", &exampleAddTask{})
 	// start workers (non-blocking call)
 	cli.StartWorker()
 

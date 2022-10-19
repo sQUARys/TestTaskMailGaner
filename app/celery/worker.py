@@ -1,5 +1,5 @@
 from celery import Celery
-
+import requests
 app = Celery(
     'tasks',
     broker='redis://',
@@ -14,11 +14,10 @@ app.conf.update(
     CELERY_TASK_PROTOCOL=1,
 )
 
+@app.task
+def postRequest(message, address):
+    return requests.post(address, message)
 
 @app.task
-def add(a, b):
-    return a + b
-
-@app.task
-def printHTML(message):
-    return message
+def sendMail(message, emailAddress, seconds):
+    postRequest.apply_async(({"message": message}, emailAddress),countdown=seconds)

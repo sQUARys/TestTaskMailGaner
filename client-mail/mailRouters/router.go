@@ -19,7 +19,7 @@ func New(controller *mailControllers.MailController) *Router {
 }
 
 func (r *Router) SetRoutes() {
-	r.Router.HandleFunc("/mail/{email}", r.Controller.MailHandler).Methods("Post")
+	r.Router.HandleFunc("/celery/{email}", r.Controller.MailHandler).Methods("Post")
 
 	r.Router.HandleFunc("/mail/sending-emails", r.Controller.GetMails).Methods("Get")
 	r.Router.HandleFunc("/mail/got-emails/{email}", r.Controller.GetMailsByEmail).Methods("Get")
