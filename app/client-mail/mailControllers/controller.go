@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/sQUARys/TestTaskMailGaner/models"
+	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"html"
 	"html/template"
 	"io/ioutil"
@@ -52,12 +52,14 @@ func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	email := vars["email"]
-
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ErrorHandler(w, err, serverInternal)
 		return
 	}
+
+	fmt.Println("BODY : ", string(body))
+
 	ctr.Service.AddMail(models.Mail{
 		To:      email,
 		Message: string(body),

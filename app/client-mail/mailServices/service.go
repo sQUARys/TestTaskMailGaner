@@ -1,7 +1,7 @@
 package mailServices
 
 import (
-	"github.com/sQUARys/TestTaskMailGaner/models"
+	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"sync"
 )
 

@@ -1,18 +1,32 @@
 package main
 
 import (
-	"github.com/sQUARys/TestTaskMailGaner/app/controllers"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailCache"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailControllers"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRepositories"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailRouters"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailServices"
+	"github.com/sQUARys/TestTaskMailGaner/app/celerySender"
+	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailCache"
+	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailControllers"
+	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailRepositories"
+	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailRouters"
+	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailServices"
+	"github.com/sQUARys/TestTaskMailGaner/app/models"
+	"github.com/sQUARys/TestTaskMailGaner/app/senders"
 	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
+	celerySender := celerySender.New()
+	celeryMail := models.Mail{
+		To:      "celeryEmail1@mail.ru",
+		From:    "roman.kocenko@mail.ru",
+		Message: "Hello from celery, bro)",
+	}
+
+	erro := celerySender.SendMessageWithTime(celeryMail, 5)
+	if erro != nil {
+		log.Println(erro)
+	}
+
 	emailCache := mailCache.New()
 	emailCache.AddUserEmail("first@mail.ru")
 	emailCache.AddUserEmail("second@mail.ru")
@@ -35,7 +49,7 @@ func main() {
 		Handler:      mailRouter.Router,
 	}
 
-	controller := controllers.New()
+	controller := senders.New()
 
 	go controller.StartSending(emailCache)
 

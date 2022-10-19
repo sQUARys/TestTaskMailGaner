@@ -1,10 +1,10 @@
-package controllers
+package senders
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/sQUARys/TestTaskMailGaner/client-mail/mailCache"
-	"github.com/sQUARys/TestTaskMailGaner/models"
+	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailCache"
+	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"html/template"
 	"log"
 	"net/http"

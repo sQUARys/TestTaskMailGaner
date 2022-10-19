@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"github.com/sQUARys/TestTaskMailGaner/models"
+	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"log"
 	"time"
 )

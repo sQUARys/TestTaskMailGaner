@@ -3,14 +3,16 @@ package mailCache
 import (
 	"encoding/json"
 	"github.com/go-redis/redis"
-	"github.com/sQUARys/TestTaskMailGaner/models"
+	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"log"
 	"strconv"
+	"sync"
 )
 
 type Cache struct {
 	Client         *redis.Client
 	SequenceNumber int
+	*sync.RWMutex
 }
 
 func New() *Cache {
@@ -32,6 +34,9 @@ func New() *Cache {
 }
 
 func (c *Cache) AddUserEmail(recipientEmailAddress string) error {
+	c.RLock()
+	defer c.RUnlock()
+
 	email := models.EmailAddress{
 		Address: recipientEmailAddress,
 	}
