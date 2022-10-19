@@ -10,9 +10,9 @@ type EmailAddress struct {
 }
 
 type Mail struct {
-	MessageId int    `json:"message_id,omitempty"`
-	From      string `json:"from,omitempty"`
-	To        string `json:"to,omitemp2ty"`
-	Message   string `json:"message,omitempty"`
-	IsRead    bool   `json:"isread,omitempty"`
+	MessageId int
+	From      string
+	To        string
+	Message   string
+	IsRead    bool
 }
