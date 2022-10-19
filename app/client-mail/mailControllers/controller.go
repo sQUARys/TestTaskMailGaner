@@ -45,8 +45,8 @@ func New(service mailService) *MailController {
 func (ctr *MailController) MailHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	ctr.RLock()
-	defer ctr.RUnlock()
+	//ctr.RLock()
+	//defer ctr.RUnlock()
 
 	vars := mux.Vars(r)
 	email := vars["email"]

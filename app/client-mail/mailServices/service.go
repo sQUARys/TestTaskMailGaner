@@ -6,8 +6,7 @@ import (
 )
 
 type Service struct {
-	Repo  usersRepository
-	Cache emailsCache
+	Repo usersRepository
 	sync.RWMutex
 }
 
@@ -16,20 +15,25 @@ type usersRepository interface {
 	GetMails() ([]models.Mail, error)
 	GetMailById(id int) (models.Mail, error)
 	GetMailsByEmail(email string) ([]models.Mail, error)
-}
-
-type emailsCache interface {
-	AddUserEmail(emailAddress string) error
-	GetEmail(key string) (models.EmailAddress, error)
+	AddUserEmail(recipientEmailAddress string) error
 	GetEmails() ([]models.EmailAddress, error)
 }
 
-func New(repository usersRepository, cache emailsCache) *Service {
+func New(repository usersRepository) *Service {
 	serv := Service{
-		Repo:  repository,
-		Cache: cache,
+		Repo: repository,
 	}
 	return &serv
+}
+
+func (service *Service) Start() error {
+	for _, email := range models.StartedMailsForBasicSending {
+		err := service.AddUserEmail(email)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (service *Service) GetMails() ([]models.Mail, error) {
@@ -50,4 +54,14 @@ func (service *Service) GetMailById(id int) (models.Mail, error) {
 func (service *Service) GetMailsByEmail(email string) ([]models.Mail, error) {
 	mails, err := service.Repo.GetMailsByEmail(email)
 	return mails, err
+}
+
+func (service *Service) AddUserEmail(recipientEmailAddress string) error {
+	err := service.Repo.AddUserEmail(recipientEmailAddress)
+	return err
+}
+
+func (service *Service) GetEmails() ([]models.EmailAddress, error) {
+	emails, err := service.Repo.GetEmails()
+	return emails, err
 }

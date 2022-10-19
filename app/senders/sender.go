@@ -3,7 +3,6 @@ package senders
 import (
 	"bytes"
 	"fmt"
-	"github.com/sQUARys/TestTaskMailGaner/app/client-mail/mailCache"
 	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"html/template"
 	"log"
@@ -16,22 +15,31 @@ type Controller struct {
 	Pushes    []string
 	FromEmail string
 }
+type usersRepository interface {
+	AddMail(mail models.Mail) error
+	GetMails() ([]models.Mail, error)
+	GetMailById(id int) (models.Mail, error)
+	GetMailsByEmail(email string) ([]models.Mail, error)
+	AddUserEmail(recipientEmailAddress string) error
+	GetEmails() ([]models.EmailAddress, error)
+}
 
 func New() *Controller {
 	return &Controller{
-		Pushes:    []string{"Hello, you won a bicycle!", "Whats'up, we can help you in education!"},
-		FromEmail: "roman.kocenko@mail.ru",
+		Pushes:    models.PushNotificationText,
+		FromEmail: models.EmailFromWhichSendAllPushes,
 	}
 }
 
-func (ctr *Controller) StartSending(cache *mailCache.Cache) {
+func (ctr *Controller) StartSending(repo usersRepository) {
 	tpl, err := template.New("message.html").ParseFiles("app/templates/message.html")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	emails, err := cache.GetEmails()
+	emails, err := repo.GetEmails()
+
 	if err != nil {
 		return
 	}

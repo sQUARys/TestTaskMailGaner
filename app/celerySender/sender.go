@@ -6,6 +6,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/sQUARys/TestTaskMailGaner/app/models"
 	"html/template"
+	"log"
 	"time"
 )
 
@@ -46,6 +47,24 @@ func CreateCeleryClient() *gocelery.CeleryClient {
 	)
 
 	return cli
+}
+
+func (sender *Sender) Start() {
+	for _, email := range models.CeleryEmailsToSend {
+		for pushNumber, push := range models.PushNotificationText {
+			celeryMail := models.Mail{
+				To:      email,
+				From:    models.EmailFromWhichSendAllPushes,
+				Message: push,
+			}
+
+			err := sender.SendMessageWithTime(celeryMail, models.SecondsForPushes[pushNumber])
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}
+
 }
 
 func (sender *Sender) SendMessageWithTime(mail models.Mail, sendAfterSeconds int) error {

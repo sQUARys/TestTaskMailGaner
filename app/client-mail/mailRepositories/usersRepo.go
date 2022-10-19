@@ -20,13 +20,16 @@ const (
 
 	connectionStringFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
 
-	dbCreateMail = `INSERT INTO mail_table("recipient","message", "isread") VALUES ($1, $2 , $3) RETURNING "message_id";`
-
-	dbGetAllUsers    = "SELECT * FROM mail_table ORDER BY message_id"
-	dbGetUserById    = "SELECT * FROM mail_table WHERE message_id = $1"
-	dbGetMailByEmail = "SELECT * FROM mail_table WHERE recipient = $1"
-
+	//mail_table
+	dbCreateMail       = `INSERT INTO mail_table("recipient","message", "isread") VALUES ($1, $2 , $3) RETURNING "message_id";`
+	dbGetAllUsers      = "SELECT * FROM mail_table ORDER BY message_id"
+	dbGetUserById      = "SELECT * FROM mail_table WHERE message_id = $1"
+	dbGetMailByEmail   = "SELECT * FROM mail_table WHERE recipient = $1"
 	dbUpdateStatusRead = "UPDATE mail_table SET isread=$1 WHERE message_id = $2"
+
+	//users_email_table
+	dbCreateUserEmail = `INSERT INTO users_email_table("email") VALUES ($1) RETURNING "email_id";`
+	dbGetAllEmails    = "SELECT * FROM users_email_table ORDER BY email_id"
 )
 
 type Repository struct {
@@ -54,9 +57,11 @@ func New() *Repository {
 	return &repo
 }
 
+// Actions with mail_table
+
 func (repo *Repository) AddMail(mail models.Mail) error {
-	repo.RLock()
-	defer repo.RUnlock()
+	//repo.RLock()
+	//defer repo.RUnlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -73,8 +78,8 @@ func (repo *Repository) AddMail(mail models.Mail) error {
 }
 
 func (repo *Repository) GetMailById(id int) (mail models.Mail, err error) {
-	repo.RLock()
-	defer repo.RUnlock()
+	//repo.RLock()
+	//defer repo.RUnlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -166,4 +171,58 @@ func (repo *Repository) GetMails() ([]models.Mail, error) {
 	}
 
 	return mails, err
+}
+
+//Actions with users_email_table
+
+func (repo *Repository) AddUserEmail(recipientEmailAddress string) error {
+	//repo.RLock()
+	//defer repo.RUnlock()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := repo.DbStruct.ExecContext(
+		ctx,
+		dbCreateUserEmail, recipientEmailAddress,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *Repository) GetEmails() ([]models.EmailAddress, error) {
+	rowsRs, err := repo.DbStruct.Query(dbGetAllEmails)
+
+	if err != nil {
+		return []models.EmailAddress{}, err
+	}
+
+	defer func() {
+		err = rowsRs.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	var emails []models.EmailAddress
+
+	for rowsRs.Next() {
+		var messageId int
+		email := models.EmailAddress{}
+		err = rowsRs.Scan(&messageId, &email.Address)
+		if err != nil {
+			return []models.EmailAddress{}, err
+		}
+		emails = append(emails, email)
+	}
+
+	if err = rowsRs.Err(); err != nil {
+		return []models.EmailAddress{}, err
+	}
+
+	return emails, err
 }
