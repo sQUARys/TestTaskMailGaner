@@ -1,39 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gocelery/gocelery"
 	"github.com/gomodule/redigo/redis"
 	"time"
 )
 
-// exampleAddTask is integer addition task
-// with named arguments
 type exampleAddTask struct {
-	a int
-	b int
-}
-
-func (a *exampleAddTask) ParseKwargs(kwargs map[string]interface{}) error {
-	kwargA, ok := kwargs["a"]
-	if !ok {
-		return fmt.Errorf("undefined kwarg a")
-	}
-	kwargAFloat, ok := kwargA.(float64)
-	if !ok {
-		return fmt.Errorf("malformed kwarg a")
-	}
-	a.a = int(kwargAFloat)
-	kwargB, ok := kwargs["b"]
-	if !ok {
-		return fmt.Errorf("undefined kwarg b")
-	}
-	kwargBFloat, ok := kwargB.(float64)
-	if !ok {
-		return fmt.Errorf("malformed kwarg b")
-	}
-	a.b = int(kwargBFloat)
-	return nil
+	a       int
+	b       int
+	message string
 }
 
 func (a *exampleAddTask) RunTask() (interface{}, error) {
@@ -69,8 +45,8 @@ func main() {
 	)
 
 	// register task
-	cli.Register("worker", &exampleAddTask{})
-
+	cli.Register("worker.add", &exampleAddTask{})
+	cli.Register("worker.printHTML", &exampleAddTask{})
 	// start workers (non-blocking call)
 	cli.StartWorker()
 
@@ -80,6 +56,52 @@ func main() {
 	// stop workers gracefully (blocking call)
 	cli.StopWorker()
 }
+
+//type exampleAddTask struct {
+//	message string
+//}
+////
+////func (a *exampleAddTask) RunTask() (interface{}, error) {
+////	result := a.message
+////	return result, nil
+////}
+////
+////func main() {
+////	// create redis connection pool
+////	redisPool := &redis.Pool{
+////		Dial: func() (redis.Conn, error) {
+////			c, err := redis.DialURL("redis://")
+////			if err != nil {
+////				return nil, err
+////			}
+////			return c, err
+////		},
+////	}
+////
+////	// initialize celery client
+////	cli, _ := gocelery.NewCeleryClient(
+////		gocelery.NewRedisBroker(redisPool),
+////		&gocelery.RedisCeleryBackend{Pool: redisPool},
+////		5, // number of workers
+////	)
+////
+////	//printHTML := func(message string) string {
+////	//	return message
+////	//}
+////
+////	// register task
+////	cli.Register("worker.add", &exampleAddTask{})
+////
+////	// start workers (non-blocking call)
+////	cli.StartWorker()
+////
+////	// wait for client request
+////	time.Sleep(10 * time.Second)
+////
+////	// stop workers gracefully (blocking call)
+////	cli.StopWorker()
+////
+////}
 
 //func main() {
 //	app := celery.NewApp()
